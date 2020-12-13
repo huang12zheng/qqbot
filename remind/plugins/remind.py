@@ -2,7 +2,7 @@ from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.adapters.cqhttp import Bot, Event
 
-remind = on_command("jc", rule=to_me(),aliased=["记恨","记仇","jh"])
+remind = on_command("jc", rule=to_me(),aliases={"记恨","记仇","jh"})
 
 @remind.handle()
 async def handle_first_receive(bot: Bot, event: Event, state: dict):
