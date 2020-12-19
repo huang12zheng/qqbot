@@ -1,26 +1,53 @@
 version: "3"
 services:
   # 其他配置参考 https://hub.docker.com/r/tiangolo/uvicorn-gunicorn-fastapi/
-  nonebot876210974:
+  # nonebot876210974:
+  #   image: hzgood/docker-nb-cli
+  #   volumes:
+  #     - "/etc/localtime:/etc/localtime"
+  #     - "./:/app/"
+  #     - "../cqhttp876210974:/app/cqhttp/"
+  #   env_file:
+  #     - ".env.prod876210974" # fastapi 使用的环境变量文件
+  #   working_dir: "/app"
+  #   # network_mode: bridge
+  #   depends_on:
+  #     - db876210974
+  #   command: ["bash","start.sh"]
+  #   # command: ["sleep","30000"]
+  # db876210974:
+  #   image: redis
+  #   ports:
+  #     - 6379:6380
+  #   volumes:
+  #     - ./redis/data876210974:/data
+  #     - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+  #     - ./logs876210974:/logs
+  #   command: ["redis-server","/usr/local/etc/redis/redis.conf"]
+  nonebot2975265878:
     image: hzgood/docker-nb-cli
     volumes:
       - "/etc/localtime:/etc/localtime"
       - "./:/app/"
-      - "../cqhttp876210974:/app/cqhttp/"
-    env_file:
-      - ".env.prod876210974" # fastapi 使用的环境变量文件
+      - "../config/2975265878/config.hjson:/app/cqhttp/config.hjson"
+      - "../config/2975265878/device.json:/app/cqhttp/device.json"
+      - "../config/go-cqhttp:/app/cqhttp/go-cqhttp"
+      - "../config/2975265878/.env.prod2975265878:/app/.env.prod"
+    # env_file:
+    #   - ".env.prod2975265878" # fastapi 使用的环境变量文件
     working_dir: "/app"
     # network_mode: bridge
     depends_on:
-      - db
-    command: ["bash","start.sh"]
-    # command: ["sleep","30000"]
-  db876210974:
+      - db2975265878
+    # command: ["bash","start.sh"]
+    command: ["sleep","30000"]
+  db2975265878:
     image: redis
     ports:
       - 6379:6380
-    volumes:
-      - ./redis/data876210974:/data
-      - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./logs876210974:/logs
-    command: ["redis-server","/usr/local/etc/redis/redis.conf"]
+    # volumes:
+      # - ../redis/2975265878:/data
+      # - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      # - ../logs/2975265878:/logs
+    # command: ["redis-server","/usr/local/etc/redis/redis.conf"]
+    command: ["redis-server"]
