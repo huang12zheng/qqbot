@@ -5,6 +5,7 @@ from redis.client import Redis
 from redis.connection import ConnectionPool
 
 import utils.bot_io as botIO
+import random
 
 # port:int = Bot.
 driver = get_driver()
@@ -71,7 +72,8 @@ async def handle_got_bj(bot: Bot, event: Event, state: dict):
         ])
     await bot.send(event,mes)
     bj.save()
-    await handle_search(bot,event,state)
+    flag = random.random() 
+    if flag > 0.87: await handle_search(bot,event,state) 
 
 
 @search.handle()
