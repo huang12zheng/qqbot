@@ -1,0 +1,1 @@
+(cd cqhttp && ./go-cqhttp)&(nb run)
