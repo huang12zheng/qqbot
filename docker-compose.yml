@@ -33,21 +33,18 @@ services:
       - "../config/2975265878/device.json:/app/cqhttp/device.json"
       - "../config/go-cqhttp:/app/cqhttp/go-cqhttp"
       - "../config/2975265878/.env.prod2975265878:/app/.env.prod"
-    # env_file:
-    #   - ".env.prod2975265878" # fastapi 使用的环境变量文件
     working_dir: "/app"
-    # network_mode: bridge
     depends_on:
       - db2975265878
-    # command: ["bash","start.sh"]
-    command: ["sleep","30000"]
+    command: ["bash","start.sh"]
+    # command: ["sleep","30000"]
   db2975265878:
     image: redis
     ports:
-      - 6379:6380
-    # volumes:
+      - 6380:6379
+    volumes:
+      - ../conf/redis.conf:/usr/local/etc/redis/redis.conf
       # - ../redis/2975265878:/data
-      # - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
       # - ../logs/2975265878:/logs
     # command: ["redis-server","/usr/local/etc/redis/redis.conf"]
     command: ["redis-server"]
