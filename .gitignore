@@ -144,3 +144,4 @@ dmypy.json
 # cqhttp/device.json
 # cqhttp/go-cqhttp
 cqhttp/**
+docker-compose.yml
