@@ -18,6 +18,7 @@ mark = on_command("jc", aliases={"记恨","标记","记仇","jh","bj"})
 search=on_command("search", aliases={"查询","查找","s"})
 sw=on_command("sw", aliases={"swho"})
 test=on_command("test", aliases={"t"})
+getMember=on_command("getMember", aliases={"gm"})
 
 mergeByGenfun=botIO.mergeByGenfun
 class BJ:
@@ -48,11 +49,19 @@ class BJ:
         
         self.victim=str(victim)
         date:str = datetime.datetime.now().strftime('%y%m%d')
-
         
-        _assassins = str.split(assassinsStr) #伤害者列表
-        assassinCount = Counter(_assassins) # xx.value is detaValue
-        self.assassins = list(assassinCount)
+        assassinCount:Counter
+        def getAssassins():
+            _assassinsVar = str.split(assassinsStr) #伤害者列表
+            #nick
+            _assassinKeys=[ f"cardToNickname:{var}" for var in _assassinsVar ]
+            _assassinsNick=r.mget(_assassinKeys)
+            _assassins = [ _assassinsNick[id] if _assassinsNick[id]!=None else _assassinsVar[id] for id in range(len(_assassinKeys)) ]
+
+            assassinCount = Counter(_assassins) # xx.value is detaValue
+
+            self.assassins = list(assassinCount)
+        getAssassins()
         count = assassinCount.most_common(1)[0][1]
         if count>5:
             self.isBJCountGt5=True
@@ -136,15 +145,8 @@ class BJ:
 @mark.handle()
 async def handle_mark(bot: Bot, event: Event, state: dict):
     if ('card' not in event.sender):
-        if (event.user_id!=805104533):
-            await mark.finish("请别在群外玩耍")
-        #for test
-        else:
-            victim = "canaan"
-    else:
-        r.set(f"card:{event.user_id}",event.sender['card'])
-        r.set(f"nickname:{event.user_id}",event.sender['nickname'])
-        victim = event.sender['card']
+        await mark.finish("请别在群外玩耍")
+    victim = event.sender['nickname']
     args = str(event.message).strip()  # 首次发送命令时跟随的参数，例：/天气 上海，则args为上海
     if args:
         # state["BJ"] = BJ(event.user_id,event.plain_text,r)
@@ -153,7 +155,7 @@ async def handle_mark(bot: Bot, event: Event, state: dict):
 @mark.got("BJ", prompt="你想标记谁?")
 async def handle_got_bj(bot: Bot, event: Event, state: dict):
     bj:BJ = state["BJ"]
-    if bj.isBJCountGt5 :
+    if bj.isBJCountGt5:
         await bot.send(event,"标记个数过多")
     else:
         ids = [ id for id in range(len(bj.assassins))]
@@ -170,14 +172,7 @@ async def handle_got_bj(bot: Bot, event: Event, state: dict):
 @search.handle()
 async def handle_search(bot: Bot, event: Event, state: dict):
     date:str = datetime.datetime.now().strftime('%y%m%d')
-    who:str 
-    # 非群里search
-    if ('card' in event.sender)==False:
-        who = r.get(f"card:{event.user_id}")
-        if who == None:
-            await search.finish("请别在群外玩耍")
-    else:
-        who = event.sender['card']
+    who:str = event.sender['nickname']
 
     victimValue=r.get("victimValue:"+who)
     _assassins=r.smembers("assassins:"+who)
@@ -201,7 +196,7 @@ async def handle_search(bot: Bot, event: Event, state: dict):
         被标记次数: {doValue}
         当日被标记次数: {curAssassinValue}
         谁最伤害你:{None if mostAssassinId == None else assassins[mostAssassinId]}
-        你当日的最大标记者是:{None if curMostAssassinId == None else assassins[curMostAssassinId]}
+        你当日标记最多的是:{None if curMostAssassinId == None else assassins[curMostAssassinId]}
     """
     await bot.send(event,mes)
 @sw.handle()
@@ -217,13 +212,23 @@ async def handle_sw(bot: Bot, event: Event, state: dict):
             curVictimValue=botIO.getInt(r,f"curVictimValue:{date}:{victim}")
             curAssassinValue=r.get(f"curAssassinValue:{date}:{victim}")
             mes:str = f"""{victim}
-            当日被伤害次数:{curVictimValue}
-            当日被标记次数: {curAssassinValue}
+    当日被伤害次数:{curVictimValue}
+    当日被标记次数: {curAssassinValue}
             """
             await bot.send(event,mes)
-            # 当日被标记次数: {curAssassinValue}\n
-        # state["BJ"] = BJ(event.user_id,event.plain_text,r)
 
+@getMember.handle()
+async def handle_gm(bot: Bot, event: Event, state: dict):
+    group_id=event.group_id
+    
+    memberList = await bot.call_api("get_group_member_list",group_id=group_id)
+    cardToNickname = dict(zip(
+        [ f"cardToNickname:{member['card']}" for member in memberList if member['card']!='' ],
+        [ f"{member['nickname']}" for member in memberList if member['card']!='' ]
+    ))
+    r.mset(cardToNickname)
+    # print(cardToNickname)
+    print("get info success")
 @test.handle()
 async def handle_test(bot: Bot, event: Event, state: dict):
     print("test")
