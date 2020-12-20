@@ -50,18 +50,19 @@ class BJ:
         self.victim=str(victim)
         date:str = datetime.datetime.now().strftime('%y%m%d')
         
-        assassinCount:Counter
         def getAssassins():
-            _assassinsVar = str.split(assassinsStr) #伤害者列表
             #nick
+            _assassinsVar = str.split(assassinsStr) #伤害者列表
             _assassinKeys=[ f"cardToNickname:{var}" for var in _assassinsVar ]
             _assassinsNick=r.mget(_assassinKeys)
             _assassins = [ _assassinsNick[id] if _assassinsNick[id]!=None else _assassinsVar[id] for id in range(len(_assassinKeys)) ]
 
+            # global assassinCount
             assassinCount = Counter(_assassins) # xx.value is detaValue
 
             self.assassins = list(assassinCount)
-        getAssassins()
+            return [assassinCount,_assassins]
+        assassinCount,_assassins = getAssassins()
         count = assassinCount.most_common(1)[0][1]
         if count>5:
             self.isBJCountGt5=True
