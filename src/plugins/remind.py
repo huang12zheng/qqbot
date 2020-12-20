@@ -17,6 +17,8 @@ r = Redis(host='host.docker.internal', port=driver.config.redis_port, decode_res
 mark = on_command("jc", aliases={"记恨","标记","记仇","jh","bj"})
 search=on_command("search", aliases={"查询","查找","s"})
 sw=on_command("sw", aliases={"swho"})
+test=on_command("test", aliases={"t"})
+
 mergeByGenfun=botIO.mergeByGenfun
 class BJ:
     r:Redis
@@ -133,15 +135,26 @@ class BJ:
 
 @mark.handle()
 async def handle_mark(bot: Bot, event: Event, state: dict):
+    if ('card' not in event.sender):
+        if (event.user_id!=805104533):
+            await mark.finish("请别在群外玩耍")
+        #for test
+        else:
+            victim = "canaan"
+    else:
+        r.set(f"card:{event.user_id}",event.sender['card'])
+        r.set(f"nickname:{event.user_id}",event.sender['nickname'])
+        victim = event.sender['card']
     args = str(event.message).strip()  # 首次发送命令时跟随的参数，例：/天气 上海，则args为上海
     if args:
-        state["BJ"] = BJ(event.user_id,event.plain_text,r)
+        # state["BJ"] = BJ(event.user_id,event.plain_text,r)
+        state["BJ"] = BJ(victim,event.plain_text,r)
 
 @mark.got("BJ", prompt="你想标记谁?")
 async def handle_got_bj(bot: Bot, event: Event, state: dict):
     bj:BJ = state["BJ"]
     if bj.isBJCountGt5 :
-        await bot.send(event,"标记个数过多") # TODO
+        await bot.send(event,"标记个数过多")
     else:
         ids = [ id for id in range(len(bj.assassins))]
         mes:str = '\n'.join([
@@ -157,7 +170,14 @@ async def handle_got_bj(bot: Bot, event: Event, state: dict):
 @search.handle()
 async def handle_search(bot: Bot, event: Event, state: dict):
     date:str = datetime.datetime.now().strftime('%y%m%d')
-    who:str = str(event.user_id)
+    who:str 
+    # 非群里search
+    if ('card' in event.sender)==False:
+        who = r.get(f"card:{event.user_id}")
+        if who == None:
+            await search.finish("请别在群外玩耍")
+    else:
+        who = event.sender['card']
 
     victimValue=r.get("victimValue:"+who)
     _assassins=r.smembers("assassins:"+who)
@@ -191,9 +211,6 @@ async def handle_sw(bot: Bot, event: Event, state: dict):
         args = argsStr.split()
         if len(args)>1 :
             await bot.send(event,"参数过多")
-        elif len(args)==0:
-            # await bot.send(event,"参数过多")
-            await handle_search(bot,event,state)
         else:
             victim = argsStr
             date:str = datetime.datetime.now().strftime('%y%m%d')
@@ -207,5 +224,6 @@ async def handle_sw(bot: Bot, event: Event, state: dict):
             # 当日被标记次数: {curAssassinValue}\n
         # state["BJ"] = BJ(event.user_id,event.plain_text,r)
 
-
-# def checkBJCount(maxCount:int=5):
+@test.handle()
+async def handle_test(bot: Bot, event: Event, state: dict):
+    print("test")
