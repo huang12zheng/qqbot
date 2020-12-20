@@ -1,6 +1,33 @@
-<!-- * git checkout xxx -->
-<!-- > select with merge branch (keep version) -->
+# how to use
 
+`bj` someone
+```
+bj aa
+JDquant  12:57:06
+aa的被标记次数:3
+```
+`search`
+```
+805104533的情况是:
+        受到伤害次数:7
+        伤害者: ['805104533', 'bb', 'aa', 'cc']
+        被标记次数: 1
+        当日被标记次数: 1
+        谁最伤害你:aa
+        你当日的最大标记者是:aa
+```
+
+`swho` someone
+```
+sw 805104533
+JDquant  13:02:11
+805104533
+            当日被伤害次数:1
+            当日被标记次数: 1
+```
+
+----
+# config change
 * config.hjson
 change follow in ../cqhttpxxx
 ```c
@@ -37,4 +64,4 @@ db876210974:
       - ./logs876210974:/logs
 ```
 * .env.prod876210974
-`REDIS_PORT=6W380`
+`REDIS_PORT=6380`
