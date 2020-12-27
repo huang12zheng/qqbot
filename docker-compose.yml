@@ -19,33 +19,32 @@ services:
     image: redis
     ports:
       - 6380:6379
-    # volumes:
+    volumes:
     #   - ../config/redis.conf:/usr/local/etc/redis/redis.conf
-      # - ../redis/2975265878:/data
+      - ../redis/2975265878:/data
       # - ../logs/2975265878:/logs
     command: ["redis-server"]
-
-  nonebot805104533:
-    image: hzgood/docker-nb-cli
-    volumes:
-      - "/etc/localtime:/etc/localtime"
-      - "./:/app/"
-      - "../config/805104533/config.hjson:/app/cqhttp/config.hjson"
-      - "../config/805104533/device.json:/app/cqhttp/device.json"
-      - "../config/go-cqhttp:/app/cqhttp/go-cqhttp"
-      - "../config/805104533/.env.prod805104533:/app/.env.prod"
-      - "../cqdata/805104533:/app/cqhttp" ## important
-    working_dir: "/app"
-    depends_on:
-      - db805104533
-    command: ["bash","start.sh"]
-    # command: ["sleep","30000"]
-  db805104533:
-    image: redis
-    ports:
-      - 6381:6379
-    # volumes:
-      # - ../config/redis.conf:/usr/local/etc/redis/redis.conf
-      # - ../redis/805104533:/data
-      # - ../logs/805104533:/logs
-    command: ["redis-server"]
+  # nonebot805104533:
+  #   image: hzgood/docker-nb-cli
+  #   volumes:
+  #     - "/etc/localtime:/etc/localtime"
+  #     - "./:/app/"
+  #     - "../config/805104533/config.hjson:/app/cqhttp/config.hjson"
+  #     - "../config/805104533/device.json:/app/cqhttp/device.json"
+  #     - "../config/go-cqhttp:/app/cqhttp/go-cqhttp"
+  #     - "../config/805104533/.env.prod805104533:/app/.env.prod"
+  #     - "../cqdata/805104533:/app/cqhttp" ## important
+  #   working_dir: "/app"
+  #   depends_on:
+  #     - db805104533
+  #   command: ["bash","start.sh"]
+  #   # command: ["sleep","30000"]
+  # db805104533:
+  #   image: redis
+  #   ports:
+  #     - 6381:6379
+  #   # volumes:
+  #     # - ../config/redis.conf:/usr/local/etc/redis/redis.conf
+  #     # - ../redis/805104533:/data
+  #     # - ../logs/805104533:/logs
+  #   command: ["redis-server"]

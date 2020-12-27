@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: qqbot-redis
+  template:
+    metadata:
+      labels:
+        app: qqbot-redis
+    spec:
+      containers:
+        - name: qqbot-redis
+          image: redis
+          imagePullPolicy: IfNotPresent
+          # command: ["redis-server","/usr/local/etc/redis/redis.conf"]
+          command: ["bash","-c","redis-server /usr/local/etc/redis/redis.conf"]
+          volumeMounts:
+            - mountPath: /usr/local/etc/redis/redis.conf
+              name: redis-conf
+            - mountPath: /data
+              name: redis-data
+          ports:
+          - containerPort: 6379
+      volumes:
+      - name: redis-conf
+        hostPath:
+          path: /home/ubuntu/qqbot_config/redis.conf
+          type: File
+      - name: redis-data
+        hostPath:
+          path: /home/ubuntu/qqbot_config/redis/2975265878
+          type: DirectoryOrCreate
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qqbot
+spec:
+  selector:
+    matchLabels:
+      app: qqbot
+  template:
+    metadata:
+      labels:
+        app: qqbot
+    spec:
+      initContainers:
+        - name: init-redis
+          image: busybox
+          command: ['sh', '-c']
+          args:
+          - until nc -w 1 -z 172.16.255.94 6379;
+            do echo "Waitting for init-redis"; sleep 2; done;
+          # until nc -w 1 -z 172.16.255.94 6379; do echo init-redis; done;
+          # command: ['sleep','3000']
+      containers:
+        - name: qqbot
+          image: hzgood/docker-nb-cli
+          imagePullPolicy: IfNotPresent
+          command: ["bash","-c","(cd /app/cqhttp && ./go-cqhttp)&(cd /app && nb run)"]
+          # command: ["sleep","3000"]
+          volumeMounts:
+            - mountPath: /app
+              name: app-path
+            - mountPath: /app/cqhttp/config.hjson
+              name: hjson
+            - mountPath: /app/cqhttp/device.json
+              name: device
+            - mountPath: /app/.env.prod
+              name: env
+            - mountPath: /app/cqhttp/go-cqhttp
+              name: cqhttp
+      volumes:
+      - name: app-path
+        hostPath: 
+          path: /home/ubuntu/qqbot_k8s/
+          type: Directory
+      - name: hjson
+        hostPath:
+          path: /home/ubuntu/qqbot_config/2975265878/config.hjson
+          type: File
+      - name: device
+        hostPath:
+          path: /home/ubuntu/qqbot_config/2975265878/device.json
+          type: File
+      - name: env
+        hostPath:
+          path: /home/ubuntu/qqbot_config/2975265878/.env.prod2975265878
+          type: File
+      - name: cqhttp
+        hostPath:
+          path: /home/ubuntu/qqbot_config/go-cqhttp
+          type: File
+      
+  # - "../config/2975265878/config.hjson:/app/cqhttp/config.hjson"
+  # - "../config/2975265878/device.json:/app/cqhttp/device.json"
+  # - "../config/go-cqhttp:/app/cqhttp/go-cqhttp"
+  # - "../config/2975265878/.env.prod2975265878:/app/.env.prod"
+  # - "../cqdata/2975265878:/app/cqhttp"
+          # ["/bin/bash","-c","source /root/.nvm/nvm.sh && npm start"]
+          # ports:
+          # - containerPort: 3000
+          #   name: fluid-service
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: qqbot-redis
+spec:
+  type: NodePort
+  ports:
+    - name: tcp
+      port: 6379
+      nodePort: 30079
+  selector:
+    app: qqbot-redis

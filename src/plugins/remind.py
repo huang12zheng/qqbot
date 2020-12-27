@@ -11,8 +11,8 @@ from collections import Counter
 
 # port:int = Bot.
 driver = get_driver()
-pool = ConnectionPool(host='host.docker.internal', port=driver.config.redis_port, decode_responses=True)
-r = Redis(host='host.docker.internal', port=driver.config.redis_port, decode_responses=True)
+pool = ConnectionPool(host=driver.config.redis_host, port=driver.config.redis_port, decode_responses=True)
+r = Redis(host=driver.config.redis_host, port=driver.config.redis_port, decode_responses=True)
 
 mark = on_command("jc", aliases={"记恨","标记","记仇","jh","bj"})
 search=on_command("search", aliases={"查询","查找","s"})
