@@ -1,0 +1,106 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations: {}
+  name: qqbot
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: qqbot
+  template:
+    metadata:
+      labels:
+        app: qqbot
+    spec:
+      containers:
+      - command:
+        - bash
+        - "-c"
+        - "(cd /app/cqhttp && ./go-cqhttp)&(cd /app && nb run)"
+        image: hzgood/docker-nb-cli
+        imagePullPolicy: IfNotPresent
+        name: qqbot
+        volumeMounts:
+        - mountPath: "/app"
+          name: app-path
+        - mountPath: "/app/cqhttp/config.hjson"
+          name: hjson
+        - mountPath: "/app/cqhttp/device.json"
+          name: device
+        - mountPath: "/app/.env.prod"
+          name: env
+        - mountPath: "/app/cqhttp/go-cqhttp"
+          name: cqhttp
+      initContainers:
+      - args:
+        - until nc -w 1 -z 172.16.255.94 6379; do echo "Waitting for init-redis";
+          sleep 2; done;
+        command:
+        - sh
+        - "-c"
+        image: busybox
+        name: init-redis
+      volumes:
+      - hostPath:
+          path: "/home/ubuntu/qqbot_k8s/"
+          type: Directory
+        name: app-path
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/config.hjson"
+          type: File
+        name: hjson
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/device.json"
+          type: File
+        name: device
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/.env.prod2975265878"
+          type: File
+        name: env
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/go-cqhttp"
+          type: File
+        name: cqhttp
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations: {}
+  name: redis
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: qqbot-redis
+  template:
+    metadata:
+      labels:
+        app: qqbot-redis
+    spec:
+      containers:
+      - command:
+        - bash
+        - "-c"
+        - redis-server /usr/local/etc/redis/redis.conf
+        image: redis
+        imagePullPolicy: IfNotPresent
+        name: qqbot-redis
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - mountPath: "/usr/local/etc/redis/redis.conf"
+          name: redis-conf
+        - mountPath: "/data"
+          name: redis-data
+      volumes:
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/redis.conf"
+          type: File
+        name: redis-conf
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/redis/2975265878"
+          type: DirectoryOrCreate
+        name: redis-data

@@ -65,3 +65,6 @@ db876210974:
 ```
 * .env.prod876210974
 `REDIS_PORT=6380`
+---
+
+install-binary.sh
