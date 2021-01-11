@@ -6,6 +6,8 @@ metadata:
   name: qqbot
   namespace: default
 spec:
+  strategy: 
+    type: Recreate
   selector:
     matchLabels:
       app: qqbot
@@ -19,6 +21,7 @@ spec:
         - bash
         - "-c"
         - "(cd /app/cqhttp && ./go-cqhttp)&(cd /app && nb run)"
+        # - "sleep 3000"
         image: hzgood/docker-nb-cli
         imagePullPolicy: IfNotPresent
         name: qqbot
@@ -104,3 +107,18 @@ spec:
           path: "/home/ubuntu/qqbot_config/redis/2975265878"
           type: DirectoryOrCreate
         name: redis-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {}
+  name: qqbot-redis
+  namespace: default
+spec:
+  ports:
+  - name: tcp
+    nodePort: 30079
+    port: 6379
+  selector:
+    app: qqbot-redis
+  type: NodePort
