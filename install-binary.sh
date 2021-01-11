@@ -1,11 +1,10 @@
 #!/usr/bin/env sh
 
 # Shamelessly copied from https://github.com/technosophos/helm-template
-export HOMEBREW_GITHUB_API_TOKEN=4c65cb19d06147db6bd91bc2744cd999eca9681c
 PROJECT_NAME="go-cqhttp"
 PROJECT_GH="Mrs4s/go-cqhttp"
 export GREP_COLOR="never"
-SHELL_FOLDER=$(cd "$(dirname "$0")";pwd)
+# SHELL_FOLDER=$(cd "$(dirname "$0")";pwd)
 PLUGIN_TMP_FILE="/tmp/${PROJECT_NAME}.tar.gz"
 : ${VERSION="$1"}
 
@@ -63,7 +62,6 @@ getDownloadURL() {
     #    https://api.github.com/repos/Mrs4s/go-cqhttp/releases/latest
     #    https://api.github.com/repos/Mrs4s/go-cqhttp/releases
     url="https://api.github.com/repos/$PROJECT_GH/releases"
-    url="$url?access_token=4c65cb19d06147db6bd91bc2744cd999eca9681c"
     if type "curl" >/dev/null; then
       # reponse=$(curl -s $url)
       DOWNLOAD_URLs=$(curl -s $url |grep ${OS}-${ARCH} |grep .tar.gz| awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
@@ -93,9 +91,9 @@ installFile() {
   mkdir -p "$FILE_TMP"
   tar xf "$PLUGIN_TMP_FILE" -C "$FILE_TMP"
   FILE_TMP_BIN="$FILE_TMP/$PROJECT_NAME"
-  echo "Preparing to install into ."
-  # mkdir -p "$FILE_PLUGIN_DIR/bin"
-  cp "$FILE_TMP_BIN" "$SHELL_FOLDER"
+  echo "Preparing to install into ~"
+  # mkdir -p "$SHELL_FOLDER/cqhttp"
+  cp "$FILE_TMP_BIN" ~
 }
 
 # fail_trap is executed if an error occurs.
