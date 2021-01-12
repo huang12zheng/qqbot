@@ -1,4 +1,4 @@
-from nonebot import on_command,get_driver
+from nonebot import on_command,get_driver,logger
 from nonebot.rule import to_me
 from nonebot.adapters.cqhttp import Bot, Event
 from redis.client import Redis
@@ -145,13 +145,10 @@ class BJ:
 
 @mark.handle()
 async def handle_mark(bot: Bot, event: Event, state: dict):
-    if ('card' not in event.sender):
-        await mark.finish("请别在群外玩耍")
-    victim = event.sender['nickname']
+    victim = event.sender.nickname
     args = str(event.message).strip()  # 首次发送命令时跟随的参数，例：/天气 上海，则args为上海
     if args:
-        # state["BJ"] = BJ(event.user_id,event.plain_text,r)
-        state["BJ"] = BJ(victim,event.plain_text,r)
+        state["BJ"] = BJ(victim,f'{event.message}',r)
 
 @mark.got("BJ", prompt="你想标记谁?")
 async def handle_got_bj(bot: Bot, event: Event, state: dict):
@@ -167,13 +164,14 @@ async def handle_got_bj(bot: Bot, event: Event, state: dict):
         await bot.send(event,mes)
         bj.save()
         flag = random.random() 
-        if flag > 0.87: await handle_search(bot,event,state) 
+        if flag > 0.87: await handle_search(bot,event,state)
+        logger.info(f"bj {bj.assassins} successed")
 
 
 @search.handle()
 async def handle_search(bot: Bot, event: Event, state: dict):
     date:str = datetime.datetime.now().strftime('%y%m%d')
-    who:str = event.sender['nickname']
+    who:str = event.sender.nickname
 
     victimValue=r.get("victimValue:"+who)
     _assassins=r.smembers("assassins:"+who)
@@ -228,7 +226,6 @@ async def handle_gm(bot: Bot, event: Event, state: dict):
         [ f"{member['nickname']}" for member in memberList if member['card']!='' ]
     ))
     r.mset(cardToNickname)
-    # print(cardToNickname)
     print("get info success")
 @test.handle()
 async def handle_test(bot: Bot, event: Event, state: dict):
