@@ -122,7 +122,7 @@ async def on_query_arena(bot: Bot, event: Event, state: dict):
         await bot.send(event,"ID格式错误，请检查",at_sender=True)
         return
     try:
-        res = getprofile(int(id))
+        res = await getprofile(int(id))
         res = res["user_info"]
         if res == "queue":
             logger.info("成功添加至队列"),
@@ -300,7 +300,7 @@ async def check_arena_state(bot,user):
         # await bot.send_msg(message_type="group",group_id=gid,user_id=uid,
         #     message=f"Test Scheduler Success {uid} {gid}"
         # )
-        res = getprofile(int(binds["arena_bind"][user]["id"]))
+        res = await getprofile(int(binds["arena_bind"][user]["id"]))
         if type(res) is str and  res.startswith('queue'):
             logger.info(f"{res}成功添加至队列")
             return
@@ -368,8 +368,8 @@ def _start_scheduler():
     if not Inited:
         Init()
     if not scheduler.running:
-        scheduler.add_job(on_arena_schedule,'interval',minutes=3)
-        # scheduler.add_job(on_arena_schedule,'interval',seconds=driver.config.jjcinterval)
+        # scheduler.add_job(on_arena_schedule,'interval',minutes=3)
+        scheduler.add_job(on_arena_schedule,'interval',seconds=driver.config.jjcinterval)
         
         scheduler.start()
         logger.opt(colors=True).info("<y>Scheduler Started</y>")

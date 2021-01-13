@@ -11,6 +11,7 @@ nonebot2 = "^2.0.0a8"
 nb-cli = "^0.1.0"
 redis = "^3.5.3"
 apscheduler = "^3.6.3"
+aiohttp = "^3.7.3"
 
 [tool.poetry.dev-dependencies]
 nonebot-test = "^0.1.0"
