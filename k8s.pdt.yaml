@@ -36,6 +36,9 @@ spec:
           name: env
         - mountPath: "/app/cqhttp/go-cqhttp"
           name: cqhttp
+        - mountPath: "/app/src/plugins/arena_sub/binds.json"
+          name: bindsData
+
       initContainers:
       - args:
         - until nc -w 1 -z 172.16.255.94 6379; do echo "Waitting for init-redis";
@@ -62,6 +65,10 @@ spec:
           path: "/home/ubuntu/qqbot_config/2975265878/.env.prod2975265878"
           type: File
         name: env
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/binds.json"
+          type: File
+        name: bindsData
       - hostPath:
           path: "/home/ubuntu/qqbot_config/go-cqhttp"
           type: File
