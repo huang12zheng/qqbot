@@ -25,7 +25,7 @@ def getprofile(viewer_id: int, interval: int = 1, full: bool = False) -> dict:
         check_time_dict[viewer_id] = f"{reqid} {time.time()+180}" #秒的格式 # id 过期时间
 
     reqid=check_time_dict[viewer_id].split()[0]
-    logger.info(f'\n{reqid}\n')
+    logger.info(f'{reqid}\n')
     logger.info(f'{apiroot}/query?request_id={reqid}')
 
     while True:

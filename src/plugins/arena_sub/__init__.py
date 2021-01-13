@@ -179,17 +179,17 @@ async def enable_arena_sub(bot,event,state):
         save_binds()
         await bot.send(event,"启用竞技场订阅成功",at_sender=True)
 
-# @sv.on_command('启用公主竞技场订阅')
-# async def enable_arena_sub(bot,event,state):
-#     if not Inited:
-#         Init()
-#     uid = str(event.user_id)
-#     if not uid in binds["arena_bind"]:
-#         await bot.send(event,"您还未绑定竞技场",at_sender=True)
-#     else:
-#         binds["arena_bind"][uid]["grand_arena_on"] = True
-#         save_binds()
-#         await bot.send(event,"启用公主竞技场订阅成功",at_sender=True)
+@enable_grand_arena_sub.handle()
+async def enable_grand_arena_sub(bot,event,state):
+    if not Inited:
+        Init()
+    uid = str(event.user_id)
+    if not uid in binds["arena_bind"]:
+        await bot.send(event,"您还未绑定竞技场",at_sender=True)
+    else:
+        binds["arena_bind"][uid]["grand_arena_on"] = True
+        save_binds()
+        await bot.send(event,"启用公主竞技场订阅成功",at_sender=True)
 
 @delete_arena_sub.handle()
 async def delete_arena_sub(bot: Bot, event: Event, state: dict):
@@ -316,7 +316,6 @@ async def check_arena_state(bot,user):
                 else:
                     msg = "[CQ:at,qq={uid}]您的竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
                     arena_ranks[user] = new_rank
-                    time.sleep(1.5)
         
                     logger.opt(colors=True).info(f"{msg}")
                     
@@ -324,7 +323,7 @@ async def check_arena_state(bot,user):
                         message_type="group",
                         group_id=gid,
                         user_id=uid,
-                        message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
+                        message=msg
                     )
 
                 # await asyncio.sleep(1.5)
@@ -340,17 +339,17 @@ async def check_arena_state(bot,user):
                     msg = "[CQ:at,qq={uid}]您的公主竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
                     grand_arena_ranks[user] = new_rank
                     
-                    gid = int(binds["arena_bind"][user]["gid"])
-                    uid = int(user)
                     await bot.send_msg(
                         message_type="group",
-                        group_id=int(gid),
-                        user_id=int(uid),
-                        message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
+                        group_id=gid,
+                        user_id=uid,
+                        message=msg
                     )
 
-    except:
+    except Exception as inst:
         logger.info("对{id}的检查出错".format(id=binds["arena_bind"][user]["id"]))
+        print(inst)
+
 
 # CQHTTP 2975265878 | [notice.group_decrease.leave]: {
 #     'time': 1610467161, 'self_id': 2975265878, 
@@ -369,8 +368,8 @@ def _start_scheduler():
     if not Inited:
         Init()
     if not scheduler.running:
-        # scheduler.add_job(on_arena_schedule,'interval',minutes=3)
-        scheduler.add_job(on_arena_schedule,'interval',seconds=driver.config.jjcinterval)
+        scheduler.add_job(on_arena_schedule,'interval',minutes=3)
+        # scheduler.add_job(on_arena_schedule,'interval',seconds=driver.config.jjcinterval)
         
         scheduler.start()
         logger.opt(colors=True).info("<y>Scheduler Started</y>")
