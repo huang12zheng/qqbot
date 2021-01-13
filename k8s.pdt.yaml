@@ -22,7 +22,7 @@ spec:
         - "-c"
         - "(cd /app/cqhttp && ./go-cqhttp)&(cd /app && nb run)"
         # - "sleep 3000"
-        image: hzgood/docker-nb-cli
+        image: hzgood/pcr_bot
         imagePullPolicy: IfNotPresent
         name: qqbot
         volumeMounts:
@@ -37,7 +37,7 @@ spec:
         - mountPath: "/app/cqhttp/go-cqhttp"
           name: cqhttp
         - mountPath: "/app/src/plugins/arena_sub/binds.json"
-          name: bindsData
+          name: binds-data
 
       initContainers:
       - args:
@@ -68,7 +68,7 @@ spec:
       - hostPath:
           path: "/home/ubuntu/qqbot_config/2975265878/binds.json"
           type: File
-        name: bindsData
+        name: binds-data
       - hostPath:
           path: "/home/ubuntu/qqbot_config/go-cqhttp"
           type: File

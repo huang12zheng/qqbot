@@ -24,14 +24,16 @@ def getprofile(viewer_id: int, interval: int = 1, full: bool = False) -> dict:
             return "id err"
         check_time_dict[viewer_id] = f"{reqid} {time.time()+180}" #秒的格式 # id 过期时间
 
-    
+    reqid=check_time_dict[viewer_id].split()[0]
     logger.info(f'\n{reqid}\n')
     logger.info(f'{apiroot}/query?request_id={reqid}')
+
     while True:
         try:
             query = json.loads(requests.get(f'{apiroot}/query?request_id={reqid}').content.decode('utf8'))
             status = query['status']
             if status == 'done':
+                del check_time_dict[viewer_id]
                 return query['data']
             elif status == 'queue':
                 time.sleep(interval)
