@@ -55,7 +55,6 @@ send_arena_sub_status=on_command('竞技场订阅状态')
 switch_bind=on_command('switch')
 
 
-
 @jjchelp.handle()
 async def send_jjchelp(bot: Bot, event: Event, state: dict):
     await bot.send(event, sv_help)
@@ -302,7 +301,7 @@ async def check_arena_state(bot,user):
         #     message=f"Test Scheduler Success {uid} {gid}"
         # )
         res = getprofile(int(binds["arena_bind"][user]["id"]))
-        if res.startswith('queue'):
+        if type(res) is str and  res.startswith('queue'):
             logger.info(f"{res}成功添加至队列")
             return
         res = res["user_info"]
@@ -362,18 +361,18 @@ async def check_arena_state(bot,user):
 # scheduler.start()
 
 
+scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
+# scheduler = Bl
+driver = nonebot.get_driver()
 
 def _start_scheduler():
     if not Inited:
         Init()
     if not scheduler.running:
-        scheduler.add_job(on_arena_schedule,'interval',minutes=3)
-        # scheduler.add_job(on_arena_schedule,'interval',seconds=10)
+        # scheduler.add_job(on_arena_schedule,'interval',minutes=3)
+        scheduler.add_job(on_arena_schedule,'interval',seconds=driver.config.jjcinterval)
         
         scheduler.start()
         logger.opt(colors=True).info("<y>Scheduler Started</y>")
 
-scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
-# scheduler = Bl
-driver = nonebot.get_driver()
 driver.on_startup(_start_scheduler)
