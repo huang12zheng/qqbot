@@ -20,9 +20,9 @@ def getprofile(viewer_id: int, interval: int = 1, full: bool = False) -> dict:
     reqid:int
     if not viewer_id in check_time_dict or not isInPeriod(viewer_id):
         reqid = json.loads(requests.get(f'{apiroot}/enqueue?full={full}&target_viewer_id={viewer_id}').content.decode('utf8'))['reqeust_id']
-         if reqid is None:
+        if reqid is None:
             return "id err"
-        check_time_dict[viewer_id] = f"{reqid} {time.time()+60}" #秒的格式 # id 过期时间
+        check_time_dict[viewer_id] = f"{reqid} {time.time()+180}" #秒的格式 # id 过期时间
 
     
     logger.info(f'\n{reqid}\n')

@@ -81,8 +81,9 @@ def save_binds():
 isCanBind:bool = True
 @switch_bind.handle()
 async def on_switch_bind(bot: Bot, event: Event, state: dict):
+    global isCanBind
     isCanBind = not isCanBind
-    await bot.send(f"bindState is {isCanBind}")
+    await bot.send(event,f"bindState is {isCanBind}")
 
 @arena_bind.handle()
 async def on_arena_bind(bot: Bot, event: Event, state: dict):
@@ -167,17 +168,17 @@ async def disable_grand_arena_sub(bot: Bot, event: Event, state: dict):
         save_binds()
         await bot.send(event,"停止公主竞技场订阅成功",at_sender=True)
 
-# @sv.on_command('启用竞技场订阅')
-# async def enable_arena_sub(bot,event,state):
-#     if not Inited:
-#         Init()
-#     uid = str(event.user_id)
-#     if not uid in binds["arena_bind"]:
-#         await bot.send(event,"您还未绑定竞技场",at_sender=True)
-#     else:
-#         binds["arena_bind"][uid]["arena_on"] = True
-#         save_binds()
-#         await bot.send(event,"启用竞技场订阅成功",at_sender=True)
+@enable_arena_sub.handle()
+async def enable_arena_sub(bot,event,state):
+    if not Inited:
+        Init()
+    uid = str(event.user_id)
+    if not uid in binds["arena_bind"]:
+        await bot.send(event,"您还未绑定竞技场",at_sender=True)
+    else:
+        binds["arena_bind"][uid]["arena_on"] = True
+        save_binds()
+        await bot.send(event,"启用竞技场订阅成功",at_sender=True)
 
 # @sv.on_command('启用公主竞技场订阅')
 # async def enable_arena_sub(bot,event,state):
@@ -286,8 +287,11 @@ def on_arena_schedule():
     arena_bind = copy.deepcopy(binds["arena_bind"])
     for user in arena_bind:
         user = str(user)
-        time.sleep(1.5)
-        asyncio.run(check_arena_state(bot,user))
+        if binds["arena_bind"][user]["arena_on"] or binds["arena_bind"][user]["grand_arena_on"]:
+            asyncio.run(check_arena_state(bot,user))
+        else:
+            if user in arena_ranks: del arena_ranks[user]
+            if user in grand_arena_ranks: del grand_arena_ranks[user]
     logger.opt(colors=True).info("<r>-----------------------------------------------------</r>")
 
 async def check_arena_state(bot,user):
@@ -303,50 +307,49 @@ async def check_arena_state(bot,user):
             return
         res = res["user_info"]
         if binds["arena_bind"][user]["arena_on"]:
-            # msg:str=''
             if not user in arena_ranks:
                 arena_ranks[user] = res["arena_rank"]
             else:
                 origin_rank = arena_ranks[user]
                 new_rank = res["arena_rank"]
-                # if origin_rank >= new_rank:#不动或者上升
-                #     arena_ranks[user] = new_rank
-                # else:
-                msg = "[CQ:at,qq={uid}]您的竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
-                arena_ranks[user] = new_rank
-                time.sleep(1.5)
+                if origin_rank >= new_rank:#不动或者上升
+                    arena_ranks[user] = new_rank
+                else:
+                    msg = "[CQ:at,qq={uid}]您的竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
+                    arena_ranks[user] = new_rank
+                    time.sleep(1.5)
         
-                logger.opt(colors=True).info(f"{msg}")
-                
-                await bot.send_msg(
-                    message_type="group",
-                    group_id=gid,
-                    user_id=uid,
-                    message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
-                )
-
-                await asyncio.sleep(1.5)
-        # if binds["arena_bind"][user]["grand_arena_on"]:
-        #     if not user in grand_arena_ranks:
-        #         grand_arena_ranks[user] = res["grand_arena_rank"]
-        #     else:
-        #         origin_rank = grand_arena_ranks[user]
-        #         new_rank = res["grand_arena_rank"]
-        #         if origin_rank >= new_rank:#不动或者上升
-        #             grand_arena_ranks[user] = new_rank
-        #         else:
-        #             msg = "[CQ:at,qq={uid}]您的公主竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
-        #             grand_arena_ranks[user] = new_rank
+                    logger.opt(colors=True).info(f"{msg}")
                     
-        #             gid = int(binds["arena_bind"][user]["gid"])
-        #             uid = int(user)
-        #             await bot.send_msg(
-        #                 message_type="group",
-        #                 group_id=int(gid),
-        #                 user_id=int(uid),
-        #                 message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
-        #             )
-        #             await asyncio.sleep(1.5)
+                    await bot.send_msg(
+                        message_type="group",
+                        group_id=gid,
+                        user_id=uid,
+                        message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
+                    )
+
+                # await asyncio.sleep(1.5)
+        if binds["arena_bind"][user]["grand_arena_on"]:
+            if not user in grand_arena_ranks:
+                grand_arena_ranks[user] = res["grand_arena_rank"]
+            else:
+                origin_rank = grand_arena_ranks[user]
+                new_rank = res["grand_arena_rank"]
+                if origin_rank >= new_rank:#不动或者上升
+                    grand_arena_ranks[user] = new_rank
+                else:
+                    msg = "[CQ:at,qq={uid}]您的公主竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
+                    grand_arena_ranks[user] = new_rank
+                    
+                    gid = int(binds["arena_bind"][user]["gid"])
+                    uid = int(user)
+                    await bot.send_msg(
+                        message_type="group",
+                        group_id=int(gid),
+                        user_id=int(uid),
+                        message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
+                    )
+
     except:
         logger.info("对{id}的检查出错".format(id=binds["arena_bind"][user]["id"]))
 
@@ -364,8 +367,8 @@ def _start_scheduler():
     if not Inited:
         Init()
     if not scheduler.running:
-        # scheduler.add_job(on_arena_schedule,'interval',minutes=1)
-        scheduler.add_job(on_arena_schedule,'interval',seconds=30)
+        scheduler.add_job(on_arena_schedule,'interval',minutes=3)
+        # scheduler.add_job(on_arena_schedule,'interval',seconds=10)
         
         scheduler.start()
         logger.opt(colors=True).info("<y>Scheduler Started</y>")
