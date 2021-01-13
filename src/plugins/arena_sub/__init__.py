@@ -11,8 +11,13 @@ import asyncio
 from .queryapi import getprofile
 import copy
 import re
-from .ischeduler import run
 
+##############################
+from nonebot.adapters.cqhttp import Bot, Event, MessageSegment,Message
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+import time
 
 sv_help = '''
 [竞技场绑定 uid] 绑定竞技场排名变动推送（仅下降），默认双场均启用
@@ -117,7 +122,7 @@ async def on_query_arena(bot: Bot, event: Event, state: dict):
         await bot.send(event,"ID格式错误，请检查",at_sender=True)
         return
     try:
-        res = await getprofile(int(id))
+        res = getprofile(int(id))
         res = res["user_info"]
         if res == "queue":
             logger.info("成功添加至队列"),
@@ -256,4 +261,116 @@ async def leave_notice(bot,event):
         pass
     return
 
-run()
+
+
+##################################################
+
+def on_arena_schedule():
+    global arena_ranks
+    global grand_arena_ranks
+    # bot = nonebot.get_bot()
+    bots = driver.bots.values()
+    bot:Bot
+    
+    try:
+        if len(driver.bots) == 1:
+            bot = list(bots)[0]
+        else:
+            return
+    except:
+        return 
+
+    logger.opt(colors=True).info("<g>start schedule</g>")
+    if not Inited:
+        Init()
+    arena_bind = copy.deepcopy(binds["arena_bind"])
+    for user in arena_bind:
+        user = str(user)
+        time.sleep(1.5)
+        asyncio.run(check_arena_state(bot,user))
+    logger.opt(colors=True).info("<r>-----------------------------------------------------</r>")
+
+async def check_arena_state(bot,user):
+    try:
+        gid = int(binds["arena_bind"][user]["gid"])
+        uid = int(user)
+        # await bot.send_msg(message_type="group",group_id=gid,user_id=uid,
+        #     message=f"Test Scheduler Success {uid} {gid}"
+        # )
+        res = getprofile(int(binds["arena_bind"][user]["id"]))
+        if res.startswith('queue'):
+            logger.info(f"{res}成功添加至队列")
+            return
+        res = res["user_info"]
+        if binds["arena_bind"][user]["arena_on"]:
+            # msg:str=''
+            if not user in arena_ranks:
+                arena_ranks[user] = res["arena_rank"]
+            else:
+                origin_rank = arena_ranks[user]
+                new_rank = res["arena_rank"]
+                # if origin_rank >= new_rank:#不动或者上升
+                #     arena_ranks[user] = new_rank
+                # else:
+                msg = "[CQ:at,qq={uid}]您的竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
+                arena_ranks[user] = new_rank
+                time.sleep(1.5)
+        
+                logger.opt(colors=True).info(f"{msg}")
+                
+                await bot.send_msg(
+                    message_type="group",
+                    group_id=gid,
+                    user_id=uid,
+                    message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
+                )
+
+                await asyncio.sleep(1.5)
+        # if binds["arena_bind"][user]["grand_arena_on"]:
+        #     if not user in grand_arena_ranks:
+        #         grand_arena_ranks[user] = res["grand_arena_rank"]
+        #     else:
+        #         origin_rank = grand_arena_ranks[user]
+        #         new_rank = res["grand_arena_rank"]
+        #         if origin_rank >= new_rank:#不动或者上升
+        #             grand_arena_ranks[user] = new_rank
+        #         else:
+        #             msg = "[CQ:at,qq={uid}]您的公主竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
+        #             grand_arena_ranks[user] = new_rank
+                    
+        #             gid = int(binds["arena_bind"][user]["gid"])
+        #             uid = int(user)
+        #             await bot.send_msg(
+        #                 message_type="group",
+        #                 group_id=int(gid),
+        #                 user_id=int(uid),
+        #                 message=MessageSegment.at(uid) + MessageSegment.text(" ") + msg
+        #             )
+        #             await asyncio.sleep(1.5)
+    except:
+        logger.info("对{id}的检查出错".format(id=binds["arena_bind"][user]["id"]))
+
+# CQHTTP 2975265878 | [notice.group_decrease.leave]: {
+#     'time': 1610467161, 'self_id': 2975265878, 
+#     'post_type': 'notice', 'notice_type': 'group_decrease', 
+#     'sub_type': 'leave', 'user_id': 805104533, 
+#     'group_id': 789276860, 'operator_id': 805104533
+# }
+# scheduler.start()
+
+
+
+def _start_scheduler():
+    if not Inited:
+        Init()
+    if not scheduler.running:
+        # scheduler.add_job(on_arena_schedule,'interval',minutes=1)
+        scheduler.add_job(on_arena_schedule,'interval',seconds=30)
+        
+        scheduler.start()
+        logger.opt(colors=True).info("<y>Scheduler Started</y>")
+
+scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
+# scheduler = Bl
+driver = nonebot.get_driver()
+driver.on_startup(_start_scheduler)

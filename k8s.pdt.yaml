@@ -6,6 +6,8 @@ metadata:
   name: qqbot
   namespace: default
 spec:
+  strategy: 
+    type: Recreate
   selector:
     matchLabels:
       app: qqbot
