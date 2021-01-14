@@ -23,7 +23,7 @@ spec:
         - "(cd /app/cqhttp && ./go-cqhttp)&(cd /app && nb run)"
         # - "sleep 3000"
         image: hzgood/pcr_bot
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         name: qqbot
         volumeMounts:
         - mountPath: "/app"

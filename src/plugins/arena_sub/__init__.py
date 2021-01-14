@@ -268,7 +268,6 @@ async def leave_notice(bot,event):
 def on_arena_schedule():
     global arena_ranks
     global grand_arena_ranks
-    # bot = nonebot.get_bot()
     bots = driver.bots.values()
     bot:Bot
     
@@ -328,7 +327,7 @@ async def check_arena_state(bot,user):
                     await bot.send_msg(
                         message_type="group",
                         group_id=gid,
-                        user_id=uid,
+                        # user_id=uid,
                         message=msg
                     )
 
@@ -379,6 +378,6 @@ def _start_scheduler():
         scheduler.add_job(on_arena_schedule,'interval',seconds=driver.config.jjcinterval)
         
         scheduler.start()
-        logger.opt(colors=True).info("<y>Scheduler Started</y>")
+        logger.opt(colors=True).info("<y>Bind Scheduler Started</y>")
 
 driver.on_startup(_start_scheduler)
