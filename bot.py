@@ -23,7 +23,7 @@ nonebot.load_plugins("src/plugins")
 
 # Modify some config / config depends on loaded configs
 # 
-# config = driver.config
+config = driver.config
 # do something...
 
 

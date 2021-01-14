@@ -15,6 +15,7 @@ async def get(url):
             try:
                 if not response.status//100 == 2:
                     print(response)
+                await asyncio.sleep(1)
                 content = await response.read()
                 return json.loads(content)
             except expression as identifier:

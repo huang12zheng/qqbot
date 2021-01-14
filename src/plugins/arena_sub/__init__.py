@@ -17,6 +17,10 @@ from nonebot.adapters.cqhttp import Bot, Event, MessageSegment,Message
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
+from utils.scheduler import scheduler
+from utils.asyncio_handle import tasks
+
+
 import time
 
 sv_help = '''
@@ -42,6 +46,8 @@ binds = {}
 arena_ranks = {}
 grand_arena_ranks ={}
 tr = None
+driver = nonebot.get_driver()
+
 
 jjchelp = on_command('jjc帮助')
 arena_bind=on_command('竞技场绑定',aliases={'jjcbind','bind','b'})
@@ -264,7 +270,7 @@ async def leave_notice(bot,event):
 
 
 ##################################################
-
+@scheduler.scheduled_job('interval',seconds=driver.config.jjcinterval)
 def on_arena_schedule():
     global arena_ranks
     global grand_arena_ranks
@@ -284,19 +290,23 @@ def on_arena_schedule():
         Init()
     arena_bind = copy.deepcopy(binds["arena_bind"])
     # queue = asyncio.Queue()
-    tasks=[]
     async def tasks_prepare():
         for user in arena_bind:
             user = str(user)
             if binds["arena_bind"][user]["arena_on"] or binds["arena_bind"][user]["grand_arena_on"]:
-                await asyncio.create_task(check_arena_state(bot,user))
-                await asyncio.sleep(1)
+                await check_arena_state(bot,user)
+                # await asyncio.create_task(check_arena_state(bot,user))
+                # await asyncio.sleep(1)
         else:
             if user in arena_ranks: del arena_ranks[user]
             if user in grand_arena_ranks: del grand_arena_ranks[user]
+    # asyncio.run(tasks_prepare())
+    # tasks_prepare()
+    # global tasks
+    tasks.append(tasks_prepare())
 
-    asyncio.run(tasks_prepare())
-    logger.opt(colors=True).info("<r>-----------------------------------------------------</r>")
+
+    logger.opt(colors=True).info("<r>--------------------- sub -------------------------</r>")
 
 async def check_arena_state(bot,user):
     try:
@@ -354,30 +364,3 @@ async def check_arena_state(bot,user):
     except Exception as inst:
         logger.info("对{id}的检查出错".format(id=binds["arena_bind"][user]["id"]))
         print(inst)
-
-
-# CQHTTP 2975265878 | [notice.group_decrease.leave]: {
-#     'time': 1610467161, 'self_id': 2975265878, 
-#     'post_type': 'notice', 'notice_type': 'group_decrease', 
-#     'sub_type': 'leave', 'user_id': 805104533, 
-#     'group_id': 789276860, 'operator_id': 805104533
-# }
-# scheduler.start()
-
-
-scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
-# scheduler = BlockingScheduler(timezone="Asia/Shanghai")
-# scheduler = Bl
-driver = nonebot.get_driver()
-
-def _start_scheduler():
-    if not Inited:
-        Init()
-    if not scheduler.running:
-        # scheduler.add_job(on_arena_schedule,'interval',minutes=3)
-        scheduler.add_job(on_arena_schedule,'interval',seconds=driver.config.jjcinterval)
-        
-        scheduler.start()
-        logger.opt(colors=True).info("<y>Bind Scheduler Started</y>")
-
-driver.on_startup(_start_scheduler)

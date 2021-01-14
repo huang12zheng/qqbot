@@ -1,8 +1,8 @@
 version: "3"
 services:
   nonebot2975265878:
-    build: .
-    # image: hzgood/docker-nb-cli
+    # build: .
+    image: hzgood/pcr_bot
     volumes:
       - "/etc/localtime:/etc/localtime"
       - "./:/app/"
