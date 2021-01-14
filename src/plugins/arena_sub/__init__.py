@@ -284,13 +284,19 @@ def on_arena_schedule():
     if not Inited:
         Init()
     arena_bind = copy.deepcopy(binds["arena_bind"])
-    for user in arena_bind:
-        user = str(user)
-        if binds["arena_bind"][user]["arena_on"] or binds["arena_bind"][user]["grand_arena_on"]:
-            asyncio.run(check_arena_state(bot,user))
+    # queue = asyncio.Queue()
+    tasks=[]
+    async def tasks_prepare():
+        for user in arena_bind:
+            user = str(user)
+            if binds["arena_bind"][user]["arena_on"] or binds["arena_bind"][user]["grand_arena_on"]:
+                await asyncio.create_task(check_arena_state(bot,user))
+                await asyncio.sleep(1)
         else:
             if user in arena_ranks: del arena_ranks[user]
             if user in grand_arena_ranks: del grand_arena_ranks[user]
+
+    asyncio.run(tasks_prepare())
     logger.opt(colors=True).info("<r>-----------------------------------------------------</r>")
 
 async def check_arena_state(bot,user):
@@ -361,6 +367,7 @@ async def check_arena_state(bot,user):
 
 
 scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
+# scheduler = BlockingScheduler(timezone="Asia/Shanghai")
 # scheduler = Bl
 driver = nonebot.get_driver()
 

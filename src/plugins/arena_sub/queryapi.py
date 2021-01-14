@@ -1,6 +1,5 @@
 import aiohttp
 import asyncio
-import requests
 
 from nonebot import logger
 import time
@@ -13,8 +12,15 @@ check_time_dict={}
 async def get(url):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            content = await response.read()
-            return json.loads(content)
+            try:
+                if not response.status//100 == 2:
+                    print(response)
+                content = await response.read()
+                return json.loads(content)
+            except expression as identifier:
+                print(identifier)
+            
+            
 
 def isInPeriod(viewer_id: int) -> bool:
     value = check_time_dict[viewer_id] # exist by Branch statements in "getprofile"
@@ -29,9 +35,9 @@ async def getprofile(viewer_id: int, interval: int = 1, full: bool = False) -> d
     reqid:int
     if not viewer_id in check_time_dict or not isInPeriod(viewer_id):
         response=await get(f'{apiroot}/enqueue?full={full}&target_viewer_id={viewer_id}')
-        reqid = response['reqeust_id']
-        if reqid is None:
+        if response is None:
             return "id err"
+        reqid = response['reqeust_id']
         check_time_dict[viewer_id] = f"{reqid} {time.time()+180}" #秒的格式 # id 过期时间
 
     reqid=check_time_dict[viewer_id].split()[0]
