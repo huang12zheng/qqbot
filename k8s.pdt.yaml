@@ -38,10 +38,13 @@ spec:
           name: cqhttp
         - mountPath: "/app/src/plugins/arena_sub/binds.json"
           name: binds-data
+        - mountPath: "/app/src/plugins/notice/notices.json"
+          name: notices-data
 
       initContainers:
       - args:
-        - until nc -w 1 -z 172.16.255.94 6379; do echo "Waitting for init-redis";
+        # - until nc -w 1 -z 172.16.255.94 6379; do echo "Waitting for init-redis";
+        - until nslookup qqbot-redis; do echo "Waitting for init-redis";
           sleep 2; done;
         command:
         - sh
@@ -70,10 +73,35 @@ spec:
           type: File
         name: binds-data
       - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/notices.json"
+          type: File
+        name: notices-data
+      - hostPath:
           path: "/home/ubuntu/qqbot_config/go-cqhttp"
           type: File
         name: cqhttp
 
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: test
+# spec:
+#   selector:
+#     matchLabels:
+#       app: qqbot-test
+#   template:
+#     metadata:
+#       labels:
+#         app: qqbot-test
+#     spec:
+#       containers:
+#       - image: busybox
+#       #   command:
+#       #   - /bin/sh
+#       #   - -c
+#       #   - "sleep 3000"
+#         name: test
 ---
 apiVersion: apps/v1
 kind: Deployment
