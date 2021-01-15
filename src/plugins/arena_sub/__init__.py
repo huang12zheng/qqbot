@@ -8,7 +8,7 @@ from nonebot.log import logger
 import json
 import nonebot
 import asyncio
-from .queryapi import getprofile
+from utils.queryapi import getprofile
 import copy
 import re
 
@@ -50,7 +50,7 @@ driver = nonebot.get_driver()
 
 
 jjchelp = on_command('jjc帮助')
-arena_bind=on_command('竞技场绑定',aliases={'jjcbind','bind','b'})
+arena_bind=on_command('竞技场绑定',aliases={'jjcbind','bind','b '})
 query_arena=on_command('竞技场查询',aliases={'js','jjcsearch'})
 disable_arena_sub=on_command('停止竞技场订阅')
 disable_grand_arena_sub=on_command('停止公主竞技场订阅')
@@ -59,6 +59,7 @@ enable_grand_arena_sub=on_command('启用公主竞技场订阅')
 delete_arena_sub=on_command('删除竞技场订阅',aliases={'unbind'})
 send_arena_sub_status=on_command('竞技场订阅状态')
 switch_bind=on_command('switch')
+switch_log=on_command('sl_arena')
 
 
 @jjchelp.handle()
@@ -84,11 +85,18 @@ def save_binds():
         fp.write(jsonStr)
 
 isCanBind:bool = True
+isCanLog:bool = False
 @switch_bind.handle()
 async def on_switch_bind(bot: Bot, event: Event, state: dict):
     global isCanBind
     isCanBind = not isCanBind
     await bot.send(event,f"bindState is {isCanBind}")
+
+@switch_log.handle()
+async def switch_log(bot: Bot, event: Event, state: dict):
+    global isCanLog
+    isCanLog = not isCanLog
+    await bot.send(event,f"isCanLog is {isCanLog}")
 
 @arena_bind.handle()
 async def on_arena_bind(bot: Bot, event: Event, state: dict):
@@ -99,7 +107,7 @@ async def on_arena_bind(bot: Bot, event: Event, state: dict):
 
     if not Inited:
         Init()
-    id = f'{event.message}'
+    id = event.raw_message.split()[1]
     if not id.isdigit() or not len(id) == 13:
         await bot.send(event,"ID格式错误，请检查",at_sender=True)
         return
@@ -128,7 +136,7 @@ async def on_query_arena(bot: Bot, event: Event, state: dict):
         await bot.send(event,"ID格式错误，请检查",at_sender=True)
         return
     try:
-        res = await getprofile(int(id))
+        res = await getprofile(int(id),isCanLog=isCanLog)
         res = res["user_info"]
         if res == "queue":
             logger.info("成功添加至队列"),
@@ -201,7 +209,7 @@ async def enable_grand_arena_sub(bot,event,state):
 async def delete_arena_sub(bot: Bot, event: Event, state: dict):
     if not Inited:
         Init()
-    if len(event.message) == 1 and event.message[0].type == 'text' and not event.message[0].data['text']:
+    if len(event.message) == 0:
         uid = str(event.user_id)
         if not uid in binds["arena_bind"]:
             await bot.finish(event, "您还未绑定竞技场", at_sender=True)
@@ -209,17 +217,17 @@ async def delete_arena_sub(bot: Bot, event: Event, state: dict):
             binds["arena_bind"].pop(uid)
             save_binds()
             await bot.send(event, "删除竞技场订阅成功", at_sender=True)
-    elif event.message[0].type == 'at':
-        if not priv.check_priv(event, priv.SUPERUSER):
-            await bot.finish(event, '删除他人订阅请联系维护', at_sender=True)
-        else:
-            uid = str(event.message[0].data['qq'])
-            if not uid in binds["arena_bind"]:
-                await bot.finish(event, "对方尚未绑定竞技场", at_sender=True)
-            else:
-                binds["arena_bind"].pop(uid)
-                save_binds()
-                await bot.send(event, "删除竞技场订阅成功", at_sender=True)
+    # elif event.message[0].type == 'at':
+    #     if not priv.check_priv(event, priv.SUPERUSER):
+    #         await bot.finish(event, '删除他人订阅请联系维护', at_sender=True)
+    #     else:
+    #         uid = str(event.message[0].data['qq'])
+    #         if not uid in binds["arena_bind"]:
+    #             await bot.finish(event, "对方尚未绑定竞技场", at_sender=True)
+    #         else:
+    #             binds["arena_bind"].pop(uid)
+    #             save_binds()
+    #             await bot.send(event, "删除竞技场订阅成功", at_sender=True)
     else:
         await bot.finish(event, '参数格式错误, 请重试')
 
@@ -272,11 +280,14 @@ async def leave_notice(bot,event):
 ##################################################
 @scheduler.scheduled_job('interval',seconds=driver.config.jjcinterval)
 def on_arena_schedule():
+    if scheduler.state == 2:
+        print('run into a error')
+    for task in tasks:
+        if task.cr_code.co_filename.find('notice')>0: return
     global arena_ranks
     global grand_arena_ranks
     bots = driver.bots.values()
     bot:Bot
-    
     try:
         if len(driver.bots) == 1:
             bot = list(bots)[0]
@@ -284,8 +295,8 @@ def on_arena_schedule():
             return
     except:
         return 
-
-    logger.opt(colors=True).info("<g>start schedule</g>")
+    global isCanLog
+    if isCanLog: logger.opt(colors=True).info("<g>start schedule</g>")
     if not Inited:
         Init()
     arena_bind = copy.deepcopy(binds["arena_bind"])
@@ -293,6 +304,7 @@ def on_arena_schedule():
     async def tasks_prepare():
         for user in arena_bind:
             user = str(user)
+            if isCanLog: logger.opt(colors=True).info(f"<y>{user}</y>")
             if binds["arena_bind"][user]["arena_on"] or binds["arena_bind"][user]["grand_arena_on"]:
                 await check_arena_state(bot,user)
                 # await asyncio.create_task(check_arena_state(bot,user))
@@ -305,8 +317,8 @@ def on_arena_schedule():
     # global tasks
     tasks.append(tasks_prepare())
 
-
-    logger.opt(colors=True).info("<r>--------------------- sub -------------------------</r>")
+     
+    if isCanLog:logger.opt(colors=True).info("<r>--------------------- sub -------------------------</r>")
 
 async def check_arena_state(bot,user):
     try:
@@ -315,7 +327,7 @@ async def check_arena_state(bot,user):
         # await bot.send_msg(message_type="group",group_id=gid,user_id=uid,
         #     message=f"Test Scheduler Success {uid} {gid}"
         # )
-        res = await getprofile(int(binds["arena_bind"][user]["id"]))
+        res = await getprofile(int(binds["arena_bind"][user]["id"]),isCanLog=isCanLog)
         if type(res) is str and  res.startswith('queue'):
             logger.info(f"{res}成功添加至队列")
             return

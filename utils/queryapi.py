@@ -31,7 +31,7 @@ def isInPeriod(viewer_id: int) -> bool:
         return True
     return False
 
-async def getprofile(viewer_id: int, interval: int = 1, full: bool = False) -> dict:
+async def getprofile(viewer_id: int, interval: int = 1, full: bool = False,isCanLog=False) -> dict:
 
     reqid:int
     if not viewer_id in check_time_dict or not isInPeriod(viewer_id):
@@ -42,8 +42,8 @@ async def getprofile(viewer_id: int, interval: int = 1, full: bool = False) -> d
         check_time_dict[viewer_id] = f"{reqid} {time.time()+180}" #秒的格式 # id 过期时间
 
     reqid=check_time_dict[viewer_id].split()[0]
-    logger.info(f'{reqid}\n')
-    logger.info(f'{apiroot}/query?request_id={reqid}')
+    if isCanLog: logger.info(f'{reqid}\n')
+    if isCanLog: logger.info(f'{apiroot}/query?request_id={reqid}')
 
     while True:
         try:

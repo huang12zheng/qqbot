@@ -5,16 +5,19 @@ from nonebot.log import logger
 import json
 import nonebot
 import asyncio
-from src.plugins.arena_sub.queryapi import getprofile
+from utils.queryapi import getprofile
+
+
 import copy
 import re
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from utils.scheduler import scheduler
+from utils.asyncio_handle import tasks
 
 #################### Command Set B ####################
-noticehelp = on_command('notice帮助',aliases={'订阅帮助',"通知帮助","nh"})
+noticehelp = on_command('notice帮助',aliases={'订阅帮助',"通知帮助","nh "})
 add_sub=on_command('通知订阅',aliases={'noticebind','nb '})
 delete_sub=on_command('停止通知订阅',aliases={'unnoticebind','unb '})
 sub_status=on_command('订阅状态')
@@ -27,8 +30,9 @@ notices = {}
 arena_ranks_bynotice = {}
 grand_arena_ranks_bynotice ={}
 isCanNoticeBind:bool = True
+isCanLog:bool = False
 driver = nonebot.get_driver()
-
+switch_log=on_command('sl_notice')
 sv_help = '''
 [通知订阅 人名 uid] 绑定竞技场排名变动推送（仅下降），默认双场均启用
 [停止通知订阅 人名] 停止战斗竞技场排名变动推送
@@ -58,6 +62,14 @@ async def show_statue(bot: Bot, event: Event, state: dict):
         msg+=f'{dataset["username"]} {uid} {dataset["arena_on"]} {dataset["grand_arena_on"]}\n'
     await bot.send(event, msg, at_sender=True)
 #################### Init End ####################
+#################### LOG End ####################
+
+@switch_log.handle()
+async def switch_log(bot: Bot, event: Event, state: dict):
+    global isCanLog
+    isCanLog = not isCanLog
+    await bot.send(event,f"isCanLog is {isCanLog}")
+#################### LOG End ####################
 
 #################### Notice Set B ####################
 
@@ -134,6 +146,10 @@ async def on_delete_sub(bot: Bot, event: Event, state: dict):
 #################### Sub B ####################
 @scheduler.scheduled_job('interval',seconds=driver.config.jjcinterval)
 def on_arena_schedule():
+    if scheduler.state == 2:
+        print('run into a error')
+    for task in tasks:
+        if task.cr_code.co_filename.find('notice')>0: return
     global arena_ranks_bynotice
     global grand_arena_ranks_bynotice
     bots = driver.bots.values()
@@ -152,7 +168,6 @@ def on_arena_schedule():
         return
     ### init ###
     # notices_t = copy.deepcopy(notices)
-    tasks=[]
     async def tasks_prepare(notices):
         for group in notices:
             group = str(group)
@@ -170,14 +185,16 @@ def on_arena_schedule():
                     if user in arena_ranks_bynotice[group]: del arena_ranks_bynotice[group][user]
                     if user in grand_arena_ranks_bynotice[group]: del grand_arena_ranks_bynotice[group][user]
 
+    tasks.append(tasks_prepare(notices))
     # asyncio.run(tasks_prepare(notices))   ### main entrance
-    logger.opt(colors=True).info("<r>-----------------------------------------------------</r>")
+    global isCanLog
+    if isCanLog: logger.opt(colors=True).info("<r>-----------------------------------------------------</r>")
     
 async def check_arena_state(bot,group,user):
     try:
         gid = int(group)
         uid = int(user)
-        res = await getprofile(uid)
+        res = await getprofile(uid,isCanLog=isCanLog)
         if type(res) is str and  res.startswith('queue'):
             logger.info(f"{res}成功添加至队列")
             return
