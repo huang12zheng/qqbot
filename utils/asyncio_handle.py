@@ -90,8 +90,9 @@ def schedule_asyncio():
         # print(f'25 {scheduler.state}')
     # print(time.time())
     if len(tasks)>0:
-        if isCanLog:print(f'---------------------------------start-----------------------------------')
-        print(f'{len(tasks)}')
+        if isCanLog:
+            print(f'---------------------------------start-----------------------------------')
+            print(f'{len(tasks)}')
         # print(f'30 {scheduler.state}')
         scheduler.pause()
         # print(f'32 {scheduler.state}')

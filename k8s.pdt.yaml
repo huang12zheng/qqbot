@@ -40,6 +40,16 @@ spec:
           name: binds-data
         - mountPath: "/app/src/plugins/notice/notices.json"
           name: notices-data
+        livenessProbe:
+          exec:
+            # don't make it string[ no such file or directory": unknown]
+            # kgpo
+            # kex qqbot-6f47b49fb5-brt4v    -- /bin/bash  /app/liveness-probe.sh
+            command:
+            - /bin/bash
+            - /app/liveness-probe.sh
+          initialDelaySeconds: 10
+          periodSeconds: 60
 
       initContainers:
       - args:

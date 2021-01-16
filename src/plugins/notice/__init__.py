@@ -226,7 +226,7 @@ async def check_arena_state(bot,group,user):
         task2=notice_task(
             bot,
             gid,
-            on_flag=notices[group][user]["arena_on"],
+            on_flag=notices[group][user]["grand_arena_on"],
             data_set=grand_arena_ranks_bynotice[group],
             key = notices[group][user]['username'],
             value = res["user_info"]["grand_arena_rank"],
