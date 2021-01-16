@@ -52,7 +52,7 @@ def getNoNone(l,func=int):
 
 def savefile(run_parent,filename, data):
     config_path = path.join(path.dirname(run_parent),filename)
-    jsonStr = json.dumps(data, indent=4)
+    jsonStr = json.dumps(data, indent=4,ensure_ascii=False)
     with open(config_path,"r+",encoding="utf8")as fp:
         fp.truncate(0)
         fp.seek(0)
