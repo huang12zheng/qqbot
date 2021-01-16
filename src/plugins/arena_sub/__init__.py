@@ -19,7 +19,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from utils.scheduler import scheduler
 from utils.asyncio_handle import tasks
-
+from utils.bot_io import readfile,savefile
 
 import time
 
@@ -69,6 +69,8 @@ async def send_jjchelp(bot: Bot, event: Event, state: dict):
 @bind_config_reload.handle()
 async def reload(bot: Bot, event: Event, state: dict):
     Init()
+    # readfile(__file__,'binds.json')
+
 
 def Init():
     global Inited
@@ -76,17 +78,19 @@ def Init():
     global binds
     global tr
     Inited = True
-    config_path = path.join(path.dirname(__file__),"binds.json")
-    with open(config_path,"r",encoding="utf8")as fp:
-        binds = json.load(fp)
+    binds = readfile(__file__,'binds.json')
+    # config_path = path.join(path.dirname(__file__),"binds.json")
+    # with open(config_path,"r",encoding="utf8")as fp:
+        # binds = json.load(fp)
 
 def save_binds():
-    config_path = path.join(path.dirname(__file__),"binds.json")
-    jsonStr = json.dumps(binds, indent=4)
-    with open(config_path,"r+",encoding="utf8")as fp:
-        fp.truncate(0)
-        fp.seek(0)
-        fp.write(jsonStr)
+    savefile(__file__,'binds.json',binds)
+    # config_path = path.join(path.dirname(__file__),"binds.json")
+    # jsonStr = json.dumps(binds, indent=4)
+    # with open(config_path,"r+",encoding="utf8")as fp:
+    #     fp.truncate(0)
+    #     fp.seek(0)
+    #     fp.write(jsonStr)
 
 isCanBind:bool = True
 isCanLog:bool = False

@@ -8,6 +8,8 @@ ref: https://www.cnblogs.com/shoufengwei/p/7606084.html
 # from redis.client import Redis
 from redis.client import Redis
 from nonebot.matcher import Matcher
+from os import path
+import json
 
 # Matcher.sendWithDb=
 # def getInt(self,key: str):
@@ -47,3 +49,16 @@ def findIdWhere(l,func):
     return None if (len(l)==0) else _l.index(func(_l))
 def getNoNone(l,func=int):
     return [ 0 if value is None else func(value) for value in l]
+
+def savefile(run_parent,filename, data):
+    config_path = path.join(path.dirname(run_parent),filename)
+    jsonStr = json.dumps(data, indent=4)
+    with open(config_path,"r+",encoding="utf8")as fp:
+        fp.truncate(0)
+        fp.seek(0)
+        fp.write(jsonStr)
+
+def readfile(run_parent,filename):
+    config_path = path.join(path.dirname(run_parent),filename)
+    with open(config_path,"r",encoding="utf8")as fp:
+        return json.load(fp)

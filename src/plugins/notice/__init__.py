@@ -15,6 +15,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from utils.scheduler import scheduler
 from utils.asyncio_handle import tasks
+from utils.bot_io import readfile,savefile
+
 
 #################### Command Set B ####################
 noticehelp = on_command('notice帮助',aliases={'订阅帮助',"通知帮助","nh"})
@@ -47,9 +49,10 @@ def Init():
     global Inited
     global notices
     Inited = True
-    config_path = path.join(path.dirname(__file__),"notices.json")
-    with open(config_path,"r",encoding="utf8")as fp:
-        notices = json.load(fp)
+    notices = readfile(__file__,'notices.json')
+    # config_path = path.join(path.dirname(__file__),"notices.json")
+    # with open(config_path,"r",encoding="utf8")as fp:
+    #     notices = json.load(fp)
 
 @noticehelp.handle()
 async def send_help(bot: Bot, event: Event, state: dict):
@@ -83,12 +86,13 @@ async def on_switch_bind(bot: Bot, event: Event, state: dict):
     await bot.send(event,f"noticeState is {isCanNoticeBind}")
 
 def save_notices():
-    config_path = path.join(path.dirname(__file__),"notices.json")
-    jsonStr = json.dumps(notices, indent=4,ensure_ascii=False)
-    with open(config_path,"r+")as fp:
-        fp.truncate(0)
-        fp.seek(0)
-        fp.write(jsonStr)
+    savefile(__file__,'notices.json',notices)
+    # config_path = path.join(path.dirname(__file__),"notices.json")
+    # jsonStr = json.dumps(notices, indent=4,ensure_ascii=False)
+    # with open(config_path,"r+")as fp:
+    #     fp.truncate(0)
+    #     fp.seek(0)
+    #     fp.write(jsonStr)
 
 @add_sub.handle()
 async def on_add_sub(bot: Bot, event: Event, state: dict):
