@@ -60,11 +60,15 @@ delete_arena_sub=on_command('删除竞技场订阅',aliases={'unbind'})
 send_arena_sub_status=on_command('竞技场订阅状态')
 switch_bind=on_command('switch')
 switch_log=on_command('sl_arena')
-
+bind_config_reload=on_command('绑定配置重载',aliases={"bind_reload","br "})
 
 @jjchelp.handle()
 async def send_jjchelp(bot: Bot, event: Event, state: dict):
     await bot.send(event, sv_help)
+
+@bind_config_reload.handle()
+async def reload(bot: Bot, event: Event, state: dict):
+    Init()
 
 def Init():
     global Inited

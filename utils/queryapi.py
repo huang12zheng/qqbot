@@ -42,7 +42,7 @@ async def getprofile(viewer_id: int, interval: int = 1, full: bool = False,isCan
         check_time_dict[viewer_id] = f"{reqid} {time.time()+180}" #秒的格式 # id 过期时间
 
     reqid=check_time_dict[viewer_id].split()[0]
-    if isCanLog: logger.info(f'{reqid}\n')
+    if isCanLog: logger.info(f'{viewer_id}\n')
     if isCanLog: logger.info(f'{apiroot}/query?request_id={reqid}')
 
     while True:
@@ -52,6 +52,7 @@ async def getprofile(viewer_id: int, interval: int = 1, full: bool = False,isCan
             status = query['status']
             if status == 'done':
                 del check_time_dict[viewer_id]
+                if isCanLog: logger.info(f'success')
                 return query['data']
             elif status == 'queue':
                 time.sleep(interval)

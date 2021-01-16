@@ -17,12 +17,13 @@ from utils.scheduler import scheduler
 from utils.asyncio_handle import tasks
 
 #################### Command Set B ####################
-noticehelp = on_command('notice帮助',aliases={'订阅帮助',"通知帮助","nh "})
+noticehelp = on_command('notice帮助',aliases={'订阅帮助',"通知帮助","nh"})
 add_sub=on_command('通知订阅',aliases={'noticebind','nb '})
 delete_sub=on_command('停止通知订阅',aliases={'unnoticebind','unb '})
-sub_status=on_command('订阅状态')
+sub_status=on_command('订阅状态',aliases={'通知状态','ns'})
 notice_config_reload=on_command('通知配置重载',aliases={"notice_reload","nr "})
 switch_bind=on_command('notice_switch')
+switch_log=on_command('sl_notice')
 #################### Command Set E ####################
 #################### Init Begin ####################
 Inited = False
@@ -32,12 +33,15 @@ grand_arena_ranks_bynotice ={}
 isCanNoticeBind:bool = True
 isCanLog:bool = False
 driver = nonebot.get_driver()
-switch_log=on_command('sl_notice')
 sv_help = '''
 [通知订阅 人名 uid] 绑定竞技场排名变动推送（仅下降），默认双场均启用
 [停止通知订阅 人名] 停止战斗竞技场排名变动推送
 [订阅状态] 查看排名变动推送绑定状态
 '''.strip()
+
+@notice_config_reload.handle() # ~~因为是volumn的, 所以要重新部署,~~
+async def reload(bot: Bot, event: Event, state: dict):
+    Init()
 
 def Init():
     global Inited
@@ -51,7 +55,6 @@ def Init():
 async def send_help(bot: Bot, event: Event, state: dict):
     await bot.send(event, sv_help)
 
-# @notice_config_reload.handle() # 因为是volumn的, 所以要重新部署
 @sub_status.handle()
 async def show_statue(bot: Bot, event: Event, state: dict):
     if not Inited:
@@ -194,6 +197,7 @@ async def check_arena_state(bot,group,user):
     try:
         gid = int(group)
         uid = int(user)
+        if isCanLog: print(f"{group}.{user}")
         res = await getprofile(uid,isCanLog=isCanLog)
         if type(res) is str and  res.startswith('queue'):
             logger.info(f"{res}成功添加至队列")
@@ -208,7 +212,7 @@ async def check_arena_state(bot,group,user):
                 return template.format(username=username,origin_rank=origin_rank,new_rank=new_rank)
             return msg_handle
                 # f"{username}的竞技场排名发生变化：{origin_rank}->{new_rank}"
-
+        if isCanLog: print("221 is running")
         task1=notice_task(
             bot,
             gid,
@@ -228,6 +232,7 @@ async def check_arena_state(bot,group,user):
             value = res["user_info"]["grand_arena_rank"],
             msg_handle=template_handle("{username} 的公主竞技场排名发生变化：{origin_rank}->{new_rank}")
         )
+        if isCanLog: print("231 is running")
         await asyncio.gather(
             asyncio.create_task(task1),
             asyncio.create_task(task2)
