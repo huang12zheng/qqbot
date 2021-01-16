@@ -13,7 +13,7 @@ from utils.scheduler import scheduler
 
 
 wife_lists = user_list()
-
+isOpenFlag= True
 # sv = Service('laopo', enable_on_default=False)
 
 MANUAL = '''
@@ -268,6 +268,7 @@ async def wife_shit(bot: Bot, event: Event, state: dict):
                 await bot.send(event,i.name + ':' + date, at_sender=True)
     else:
         await bot.send(event,message="你没有老婆", at_sender=True)
+        if isOpenFlag: await love(bot,event,state)
 
 
 @commandHandle('get_merry', aliases={'结婚'})
@@ -294,6 +295,7 @@ async def love(bot: Bot, event: Event, state: dict):
                 await bot.send(event,message=str(i.name) + ":" + str(i.scence), at_sender=True)
                 i.scence = await get_love_scence()
     else:
+        # if isOpenFlag: await love(bot,event,state)
         await bot.send(event,message="你没有老婆", at_sender=True)
 
 
@@ -311,3 +313,4 @@ async def kotoba(bot: Bot, event: Event, state: dict):
                 i.scence = await get_love_kotoba()
     else:
         await bot.send(event,message="你没有老婆", at_sender=True)
+        if isOpenFlag: await love(bot,event,state)
