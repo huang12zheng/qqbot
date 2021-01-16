@@ -112,7 +112,7 @@ async def on_arena_bind(bot: Bot, event: Event, state: dict):
     if not isCanBind:
         await bot.send(event,"暂不支持bind")
         return
-
+    
     if not Inited:
         Init()
     id = event.raw_message.split()[1]
@@ -120,6 +120,9 @@ async def on_arena_bind(bot: Bot, event: Event, state: dict):
         await bot.send(event,"ID格式错误，请检查",at_sender=True)
         return
     uid = str(event.user_id)
+    if not hasattr(event,"group_id"):
+        await bot.send(event,"欧尼酱,千歌只能在群里玩耍",at_sender=True)
+        return
     gid = str(event.group_id)
     if not uid in binds["arena_bind"]:
         binds["arena_bind"][uid] = {"id":id,"uid":uid,"gid":gid,"arena_on":True,"grand_arena_on":True}

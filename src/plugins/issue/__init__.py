@@ -58,7 +58,7 @@ async def show_issue(bot: Bot, event: Event, state: dict):
     await bot.send(event,f"欧尼酱:\n{msg}")
 
 @command_show_my_issue.handle()
-async def show_issue(bot: Bot, event: Event, state: dict):
+async def show_my_issue(bot: Bot, event: Event, state: dict):
     gid = str(event.group_id)
     uid = str(event.user_id)
     if not Inited:
@@ -66,6 +66,10 @@ async def show_issue(bot: Bot, event: Event, state: dict):
     msg = ''
     count=0
     # for user in issues[gid]:
+    if not gid in issues:
+        issues[gid]={}
+    if not uid in issues[gid]:
+        issues[gid][uid]={}
     for timestamp in issues[gid][uid]:
         count+=1
         msg+=issues[gid][user][timestamp][6:]+'\n'
