@@ -155,6 +155,7 @@ async def on_delete_sub(bot: Bot, event: Event, state: dict):
 def on_arena_schedule():
     if scheduler.state == 2:
         print('run into a error')
+        return
     for task in tasks:
         if task.cr_code.co_filename.find('notice')>0: return
     global arena_ranks_bynotice
