@@ -18,7 +18,7 @@ isOpenFlag= True
 
 MANUAL = '''
 指令表：
-1.老婆
+1.申请老婆
 2.老婆的个人信息
 3.老婆骂我
 5.老婆！/爱我/爱你
@@ -134,7 +134,7 @@ async def wife_self_index(bot: Bot, event: Event, state: dict):
         await bot.send(event,message="没有找到你的信息", at_sender=True)
 
 
-@commandHandle('wife', aliases={'老婆'})
+@commandHandle('wife', aliases={'老婆','申请老婆'})
 # on_natural_language 装饰器将函数声明为一个自然语言处理器
 # keywords 表示需要响应的关键词，类型为任意可迭代对象，元素类型为 str
 # 如果不传入 keywords，则响应所有没有被当作命令处理的消息
