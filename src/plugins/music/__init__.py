@@ -4,6 +4,7 @@ from utils.nonebot_uils import commandHandle
 from utils import aiorequests
 from bot import logger
 from nonebot.adapters.cqhttp import Bot, Event,MessageSegment
+import random
 
 
 
@@ -225,12 +226,12 @@ async def search_migu_music(bot: Bot, event: Event, state: dict):
 async def search_music(music_name: str) -> typing.Union[list, dict]:
     result = []
     song_list = await search163(music_name, 3)
-    if song_list:
+    if song_list and random.random()>0.7:
         result += song_list
-    # song_list = await searchqq(music_name, 3)
-    # if song_list:
-    #     result += song_list
-    # song_list = await searchmigu(music_name, 3)
-    # if song_list:
-    #     result += song_list
+    song_list = await searchqq(music_name, 3)
+    if song_list and random.random()>0.7:
+        result += song_list
+    song_list = await searchmigu(music_name, 3)
+    if song_list and random.random()>0.7:
+        result += song_list
     return result
