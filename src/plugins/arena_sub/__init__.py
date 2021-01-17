@@ -123,6 +123,9 @@ async def on_arena_bind(bot: Bot, event: Event, state: dict):
     if not hasattr(event,"group_id"):
         await bot.send(event,"欧尼酱,千歌只能在群里玩耍",at_sender=True)
         return
+    if "f{event.group_id}"=="397136953":
+        await bot.send(event,"欧尼酱,主群里的千歌被封印了",at_sender=True)
+        return
     gid = str(event.group_id)
     if not uid in binds["arena_bind"]:
         binds["arena_bind"][uid] = {"id":id,"uid":uid,"gid":gid,"arena_on":True,"grand_arena_on":True}

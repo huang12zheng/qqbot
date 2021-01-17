@@ -3,16 +3,15 @@
 
 import nonebot
 from nonebot.adapters.cqhttp import Bot as CQHTTPBot
-from utils.bot_io import Logger
 import time,sys
 # Custom your logger
 # 
-# from nonebot.log import logger, default_format
-# logger.add("error.log",
-#            rotation="00:00",
-#            diagnose=False,
-#            level="ERROR",
-#            format=default_format)
+from nonebot.log import logger, default_format
+logger.add(f'log/{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}.log',
+           rotation="00:00",
+           diagnose=False,
+           level="ERROR",
+           format=default_format)
 
 # You can pass some keyword args config to init function
 nonebot.init()
@@ -30,5 +29,4 @@ nonebot.load_plugins("src/plugins")
 
 
 if __name__ == "__main__":
-    sys.stdout = Logger(f'{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}',sys.stdout)
     nonebot.run(app="bot:app")
