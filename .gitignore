@@ -146,3 +146,4 @@ dmypy.json
 cqhttp/**
 docker-compose.yml
 poetry.lock
+utils/scheduler.md
