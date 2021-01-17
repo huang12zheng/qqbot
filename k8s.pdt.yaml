@@ -21,6 +21,7 @@ spec:
         - bash
         - "-c"
         - "(cd /app/cqhttp && ./go-cqhttp)&(cd /app && nb run)"
+        # - "((cd /app/cqhttp && ./go-cqhttp)&(cd /app && nb run)) > tmp.log"
         # - "sleep 3000"
         image: hzgood/pcr_bot
         imagePullPolicy: Always
@@ -40,6 +41,11 @@ spec:
           name: binds-data
         - mountPath: "/app/src/plugins/notice/notices.json"
           name: notices-data
+        - mountPath: "/app/log"
+          name: app-log
+        - name: config
+          mountPath: /etc/localtime
+          readOnly: true
         livenessProbe:
           exec:
             # don't make it string[ no such file or directory": unknown]
@@ -62,6 +68,9 @@ spec:
         image: busybox
         name: init-redis
       volumes:
+      - name: config
+        hostPath:
+          path: /etc/localtime
       - hostPath:
           path: "/home/ubuntu/qqbot_k8s/"
           type: Directory
@@ -86,6 +95,9 @@ spec:
           path: "/home/ubuntu/qqbot_config/2975265878/notices.json"
           type: File
         name: notices-data
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/log"
+        name: app-log
       - hostPath:
           path: "/home/ubuntu/qqbot_config/go-cqhttp"
           type: File
