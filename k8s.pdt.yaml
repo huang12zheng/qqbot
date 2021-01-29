@@ -41,6 +41,12 @@ spec:
           name: binds-data
         - mountPath: "/app/src/plugins/notice/notices.json"
           name: notices-data
+        - mountPath: "/app/laopo.json"
+          name: laopo-data
+        - mountPath: "/app/vip.json"
+          name: vip-data
+        - mountPath: "/app/src/plugins/arena_where/uid_list.json"
+          name: ask-where
         - mountPath: "/app/log"
           name: app-log
         - name: config
@@ -55,7 +61,7 @@ spec:
             - /bin/bash
             - /app/liveness-probe.sh
           initialDelaySeconds: 10
-          periodSeconds: 60
+          periodSeconds: 30
 
       initContainers:
       - args:
@@ -95,6 +101,18 @@ spec:
           path: "/home/ubuntu/qqbot_config/2975265878/notices.json"
           type: File
         name: notices-data
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/uid_list.json"
+          type: File
+        name: ask-where
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/2975265878/laopo.json"
+          type: File
+        name: laopo-data
+      - hostPath:
+          path: "/home/ubuntu/qqbot_config/vip.json"
+          type: File
+        name: vip-data
       - hostPath:
           path: "/home/ubuntu/qqbot_config/2975265878/log"
         name: app-log

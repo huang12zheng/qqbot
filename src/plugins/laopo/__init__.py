@@ -18,7 +18,7 @@ isOpenFlag= True
 
 MANUAL = '''
 指令表：
-1.申请老婆
+1.老婆
 2.老婆的个人信息
 3.老婆骂我
 5.老婆！/爱我/爱你
@@ -68,7 +68,7 @@ async def ToDayisTalk():
 
 async def read():
     try:
-        with open('index.json', 'r+', encoding='utf-8') as f:
+        with open('laopo.json', 'r+', encoding='utf-8') as f:
             line = f.readline()
             while line:
                 line = str(line).replace('[', '').replace(',\n', '').replace(']', '')
@@ -93,7 +93,7 @@ async def read():
             f.close()
     except:
         try:
-            with open('index.json', 'r+', encoding='utf-8') as f:
+            with open('laopo.json', 'r+', encoding='utf-8') as f:
                 line = f.readline()
                 while line:
                     line = str(line).replace('[', '').replace(',\n', '').replace(']', '')
@@ -117,7 +117,7 @@ async def read():
                     line = f.readline()
             f.close()
         except:
-            with open('index.json', 'a+', encoding='utf-8') as f:
+            with open('laopo.json', 'a+', encoding='utf-8') as f:
                 f.close()
     return
 
@@ -134,11 +134,14 @@ async def wife_self_index(bot: Bot, event: Event, state: dict):
         await bot.send(event,message="没有找到你的信息", at_sender=True)
 
 
-@commandHandle('wife', aliases={'老婆','申请老婆'})
+@commandHandle('wife', aliases={'老婆'})
 # on_natural_language 装饰器将函数声明为一个自然语言处理器
 # keywords 表示需要响应的关键词，类型为任意可迭代对象，元素类型为 str
 # 如果不传入 keywords，则响应所有没有被当作命令处理的消息
 async def _(bot: Bot, event: Event, state: dict):
+    if not f"{event.group_id}"=="397136953":
+        await bot.send(event,message=f'我和伙伴们被大魔王控制在了主群里', at_sender=True)
+        return
     if not wife_lists.alredyInit:
         await read()
         wife_lists.alredyInit = True

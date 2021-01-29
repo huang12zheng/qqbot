@@ -16,6 +16,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from utils.scheduler import scheduler
 from utils.asyncio_handle import tasks
 from utils.bot_io import readfile,savefile
+from utils.nonebot_uils import commandHandle
+import time
 
 
 #################### Command Set B ####################
@@ -36,14 +38,16 @@ isCanNoticeBind:bool = True
 isCanLog:bool = False
 driver = nonebot.get_driver()
 sv_help = '''
-[通知订阅 人名 uid] 绑定竞技场排名变动推送（仅下降），默认双场均启用
-[停止通知订阅 人名] 停止战斗竞技场排名变动推送
+[通知订阅 人名 uid] 绑定竞技场排名变动推送，默认双场均启用
+[停止通知订阅 uid] 停止战斗竞技场排名变动推送
 [订阅状态] 查看排名变动推送绑定状态
+[通知配置重载]
 '''.strip()
 
 @notice_config_reload.handle() # ~~因为是volumn的, 所以要重新部署,~~
 async def reload(bot: Bot, event: Event, state: dict):
     Init()
+    await bot.send(event, '重载结束')
 
 def Init():
     global Inited
@@ -156,6 +160,12 @@ def on_arena_schedule():
     if scheduler.state == 2:
         print('run into a error')
         return
+    
+    # sleephour=int( time.strftime("%H", time.localtime()) )
+    # if sleephour >0 and sleephour <= 6: 
+    #     print(time.strftime("%H", time.localtime()))
+    #     return
+    
     for task in tasks:
         if task.cr_code.co_filename.find('notice')>0: return
     global arena_ranks_bynotice
@@ -287,3 +297,8 @@ async def notice_task(bot,gid,on_flag,data_set,key,value,msg_handle):
 
 # driver.on_startup(start_scheduler)
 # start_scheduler()
+
+@commandHandle('通知排名')
+async def notice_ranks(bot: Bot, event: Event, state: dict):
+    await bot.send(event,f"{arena_ranks_bynotice}")
+    await bot.send(event,f"{grand_arena_ranks_bynotice}")

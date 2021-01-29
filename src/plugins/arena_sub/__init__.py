@@ -20,6 +20,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from utils.scheduler import scheduler
 from utils.asyncio_handle import tasks
 from utils.bot_io import readfile,savefile
+from utils.nonebot_uils import commandHandle
+from utils.vip import VipHandle
 
 import time
 
@@ -47,7 +49,6 @@ arena_ranks = {}
 grand_arena_ranks ={}
 tr = None
 driver = nonebot.get_driver()
-
 
 jjchelp = on_command('jjc帮助')
 arena_bind=on_command('竞技场绑定',aliases={'jjcbind','bind','b '})
@@ -79,18 +80,9 @@ def Init():
     global tr
     Inited = True
     binds = readfile(__file__,'binds.json')
-    # config_path = path.join(path.dirname(__file__),"binds.json")
-    # with open(config_path,"r",encoding="utf8")as fp:
-        # binds = json.load(fp)
 
 def save_binds():
     savefile(__file__,'binds.json',binds)
-    # config_path = path.join(path.dirname(__file__),"binds.json")
-    # jsonStr = json.dumps(binds, indent=4)
-    # with open(config_path,"r+",encoding="utf8")as fp:
-    #     fp.truncate(0)
-    #     fp.seek(0)
-    #     fp.write(jsonStr)
 
 isCanBind:bool = True
 isCanLog:bool = False
@@ -289,7 +281,7 @@ async def leave_notice(bot,event):
         pass
     return
 
-
+vipHandle = VipHandle()
 
 ##################################################
 @scheduler.scheduled_job('interval',seconds=driver.config.jjcinterval)
@@ -312,21 +304,30 @@ def on_arena_schedule():
         return 
     global isCanLog
     if isCanLog: logger.opt(colors=True).info("<g>start schedule</g>")
+    
     if not Inited:
         Init()
+    if not vipHandle.Inited:
+        vipHandle.init(bot,driver.config,{})
+
     arena_bind = copy.deepcopy(binds["arena_bind"])
     # queue = asyncio.Queue()
     async def tasks_prepare():
         for user in arena_bind:
             user = str(user)
             if isCanLog: logger.opt(colors=True).info(f"<y>{user}</y>")
+            
+            if vipHandle.check_service_count(user) == False:
+                if isCanLog: logger.opt(colors=True).info(f"<y>{user}</y> continue..{vipHandle}")
+                continue
+            
             if binds["arena_bind"][user]["arena_on"] or binds["arena_bind"][user]["grand_arena_on"]:
                 await check_arena_state(bot,user)
                 # await asyncio.create_task(check_arena_state(bot,user))
                 # await asyncio.sleep(1)
-        else:
-            if user in arena_ranks: del arena_ranks[user]
-            if user in grand_arena_ranks: del grand_arena_ranks[user]
+            else:
+                if user in arena_ranks: del arena_ranks[user]
+                if user in grand_arena_ranks: del grand_arena_ranks[user]
     # asyncio.run(tasks_prepare())
     # tasks_prepare()
     # global tasks
@@ -368,6 +369,9 @@ async def check_arena_state(bot,user):
                         message=msg
                     )
 
+                    await vipHandle.handle_service_count(uid,gid)
+                    
+
                 # await asyncio.sleep(1.5)
         if binds["arena_bind"][user]["grand_arena_on"]:
             if not user in grand_arena_ranks:
@@ -387,7 +391,15 @@ async def check_arena_state(bot,user):
                         user_id=uid,
                         message=msg
                     )
+                    await vipHandle.handle_service_count(uid,gid)
 
     except Exception as inst:
         logger.info("对{id}的检查出错".format(id=binds["arena_bind"][user]["id"]))
         print(inst)
+
+@commandHandle('绑定排名')
+async def bind_ranks(bot: Bot, event: Event, state: dict):
+    await bot.send(event,f"{arena_ranks}")
+    await bot.send(event,f"{grand_arena_ranks}")
+    await bot.send(event,f"{vipHandle.get_service_count()}")
+    

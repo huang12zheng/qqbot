@@ -7,7 +7,7 @@ import os
 
 async def write(wife_list):
     if len(wife_list.user_wife_list) > 0:
-        with open('index.json', 'w+', encoding='utf-8') as f:
+        with open('laopo.json', 'w+', encoding='utf-8') as f:
             src = '['
             for wife in wife_list.user_wife_list:
                 date = {'name': wife.name,

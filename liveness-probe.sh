@@ -13,6 +13,13 @@ flag='\[FATAL\]'
 echo "$tailContext" | grep $flag
 EXCODE=$?
 echo $EXCODE
+# 定时重启, 因为 pod是 60检测一次
+if [ `date +%k` -eq 0 -a `date +"%_M"` -lt 4 ] # 找到”失败“,要退出
+then
+    # echo "O.K" 
+    exit 1
+fi
+
 # if [ "$EXCODE" == "0" ] # EXCODE is no num
 if [ "$EXCODE" -eq "0" ] # 找到”失败“,要退出
 then
